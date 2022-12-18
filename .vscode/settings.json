@@ -87,7 +87,7 @@
     "locale": "cpp",
     "stack": "cpp"
   },
-  "C_Cpp.errorSquiggles": "Enabled",
+  "C_Cpp.errorSquiggles": "enabled",
   "cSpell.words": [
     "alog",
     "alpbt",
