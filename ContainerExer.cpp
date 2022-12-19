@@ -13,7 +13,7 @@ namespace natural {
 }; // namespace natural
 namespace container {
     namespace list {
-        const size_t MAX_LIST_SIZE = initial::MAX_SIZE + 10;
+        const size_t max_type_list_size = initial::MAX_SIZE + 10;
         namespace sequential_list {
             typedef int DataType;
             struct basic_seq_list {
@@ -24,7 +24,7 @@ namespace container {
             bool ListEmpty(basic_seq_list *L) { return !L->length; }
             Status InitList(basic_seq_list *L) {
                 L->ListData =
-                    (DataType *)malloc(MAX_LIST_SIZE * sizeof(DataType));
+                    (DataType *)malloc(max_type_list_size * sizeof(DataType));
                 L->length = 0;
                 return initial::SUCCEEDED;
             }

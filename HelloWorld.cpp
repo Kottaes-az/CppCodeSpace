@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
-int main(int argc, char *argv[], char **env) {
-    std::cout << __cplusplus << std::endl;
+#include <future>
+auto main(int argc, char *argv[], char **env) -> int {
+    std::cout << "HELLO WORLD" << std::endl;
     return 0;
 }
