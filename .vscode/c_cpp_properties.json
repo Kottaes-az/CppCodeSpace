@@ -3,14 +3,14 @@
     {
       "name": "Win32",
       "includePath": [
-        "${workspaceFolder}/**",
-        "D:\\CodeEnv\\mingw-w64\\lib\\gcc\\x86_64-w64-mingw32\\8.1.0\\include"
+        "${workspaceFolder}\\**",
+        "D:\\CodeEnv\\msys64\\ucrt64\\include"
       ],
       "defines": ["_DEBUG", "UNICODE", "_UNICODE"],
-      "compilerPath": "D:\\CodeEnv\\mingw-w64\\bin\\gcc.exe",
-      "cStandard": "c17",
-      "cppStandard": "c++20",
-      "intelliSenseMode": "windows-gcc-x64"
+      "compilerPath": "D:\\CodeEnv\\msys64\\ucrt64\\bin\\gcc.exe",
+      "cStandard": "gnu17",
+      "cppStandard": "gnu++20",
+      "intelliSenseMode": "gcc-x64"
     }
   ],
   "version": 4
