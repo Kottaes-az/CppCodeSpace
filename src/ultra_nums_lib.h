@@ -2,8 +2,8 @@
  * @file ultra_nums_lib.h
  * @author Kpocc (23687408@qq.com)
  * @brief
- * @version 0.2.0-lib
- * @date 2022-12-28
+ * @version 0.2.1-lib
+ * @date 2022-12-30
  *
  * @copyright Copyright (c) 2022
  *
@@ -36,29 +36,6 @@
 namespace fau {
     typedef long long num_t;
     typedef char digit_t;
-    namespace basic_vast_operation {
-        /* --静态方法 */
-        constexpr static std::string law_up(std::string) noexcept;
-        constexpr static std::string abs(const std::string) noexcept;
-        constexpr static bool negative(const std::string) noexcept;
-        constexpr static int
-            compare(std::string,
-                    std::string) noexcept; // if num1>num2,return 1,else if
-                                           // num1=num2,return 0,else return -1;
-        constexpr static std::string add(std::string,
-                                         std::string); // num1+num2
-        constexpr static std::string minus(std::string,
-                                           std::string); // num1-num2
-        constexpr static std::string multiply(std::string,
-                                              std::string); // num1*num2
-        constexpr static std::string divide(std::string,
-                                            std::string); // num1/num2
-        constexpr static std::string mod(std::string,
-                                         std::string); // num1 mod num2
-        constexpr static std::string gcd(std::string,
-                                         std::string); // gcd(num1,num2)
-        /* 静态方法-- */
-    } // namespace basic_vast_operation
     class vast {
       public:
         constexpr vast() noexcept;
@@ -69,6 +46,26 @@ namespace fau {
 
       private:
         std::string self_data;
+        /* --静态方法 */
+        constexpr static std::string str_settle(const std::string &) noexcept;
+        constexpr static std::string str_abs(const std::string &) noexcept;
+        constexpr static bool str_negative(const std::string &) noexcept;
+        constexpr static int str_compare(
+            const std::string &,
+            const std::string &) noexcept; // if num1>num2,return 1,else if
+                                           // num1=num2,return 0,else return -1;
+        constexpr static std::string str_add(std::string,
+                                             std::string); // num1+num2
+        constexpr static std::string str_minus(std::string,
+                                               std::string); // num1-num2
+        constexpr static std::string str_multiply(std::string,
+                                                  std::string); // num1*num2
+        constexpr static std::string str_divide(std::string,
+                                                std::string); // num1/num2
+        constexpr static std::string str_mod(std::string,
+                                             std::string); // num1 mod num2
+
+        /* 静态方法-- */
 
       public:
         /* --重载操作符与声明基本成员函数 */
@@ -93,8 +90,8 @@ namespace fau {
         constexpr vast operator*=(const vast &);       // operator*=
         constexpr vast operator/=(const vast &);       // operator/=
         constexpr vast operator%=(const vast &);       //%=
-        vast operator++();                   //++
-        vast operator--();                   //--
+        vast operator++();                             //++
+        vast operator--();                             //--
         constexpr operator std::string() const;
         constexpr operator num_t() const;
         /* 重载操作符与声明基本成员函数-- */

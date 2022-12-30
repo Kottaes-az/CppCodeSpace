@@ -2,7 +2,7 @@
  * @file ultra_nums.h
  * @author Kpocc (23687408@qq.com)
  * @brief
- * @version 0.2.0-core
+ * @version 0.2.1-core
  * @date 2022-12-30
  *
  * @copyright Copyright (c) 2022
@@ -28,30 +28,34 @@ constexpr fau::vast::vast(const vast &vaSrc) noexcept {
 constexpr fau::vast::vast(const char *aSrc) noexcept { this->copy_str(aSrc); }
 inline fau::vast::vast(const num_t &numSrc) noexcept { this->copy_num(numSrc); }
 
-constexpr fau::vast::~vast() noexcept {
-    this->clear();
-    free(&(this->self_data));
-}
+constexpr fau::vast::~vast() noexcept { free(&(this->self_data)); }
 /* (解)构造函数-- */
 
 /* --静态方法 */
 /**
+ * 合法std::string整数的定义: 称一个%std::string为vast完备的合法整数,
+ * 当且仅当该%std::string:
+ * 1.除头部字符外包含且仅包含数字; 2.没有多余的前导0;
+ * 3.头部字符为一个负号('-')或一个ASCII码在[48, 58]范围内的字符.
+ */
+/**
  * @brief
  * 针对表示整数的std::string类型的整理函数,用以去除多余的前导0或其他杂糅的ASCII字符.
+ * @attention 对于一些严重不合法的字符串, 强制使其合法后可能造成数据损失.
  * @param strSrc:原整数, 必须是 (可以转换为) std::string 的类型.
  * @return std::string类型, 包含一个合法整数.
  */
 constexpr std::string
-fau::basic_vast_operation::law_up(const std::string strNum) noexcept {
+fau::vast::str_settle(const std::string &strSrc) noexcept {
     // 虽然传入了可能不合法的%std::string, 但此处只为了去除原数中可能的负号,
     // 以方便下面的操作
-    std::string strTemp = abs(strNum);
+    std::string strTemp = str_abs(strSrc);
 
     for (const char iter : strTemp)
         if (!isdigit(iter)) return "0"; // 排查杂糅的ASCII字符
     while (!strTemp.empty() && strTemp.front() == '0')
         strTemp.erase(0, 1); // 去除前导0
-    if (strNum.front() == '-')
+    if (strSrc.front() == '-')
         strTemp = '-' + strTemp; // 如果原数是负数, 则结果前插负号
     if (strTemp.empty()) strTemp = "0";
     return strTemp;
@@ -60,10 +64,10 @@ fau::basic_vast_operation::law_up(const std::string strNum) noexcept {
 /**
  * @brief 针对表示整数的%std::string的取绝对值函数.
  * @param strNum:原整数, 必须是 (可以转换为) std::string 的类型.
- * @return std::string类型, 包含一个正序无符号整数.
+ * @return std::string类型, 包含一个无符号的vast完备整数.
  */
 inline constexpr std::string
-fau::basic_vast_operation::abs(const std::string strNum) noexcept {
+fau::vast::str_abs(const std::string &strNum) noexcept {
     std::string strTemp = strNum;
     if (strTemp.front() == '-') strTemp.erase(0, 1);
     return strTemp;
@@ -77,7 +81,7 @@ fau::basic_vast_operation::abs(const std::string strNum) noexcept {
  * @return bool类型, 表示std::string表示的整数是否为负数.
  */
 inline constexpr bool
-fau::basic_vast_operation::negative(const std::string strNum) noexcept {
+fau::vast::str_negative(const std::string &strNum) noexcept {
     return strNum.front() == '-';
 }
 
@@ -89,10 +93,11 @@ fau::basic_vast_operation::negative(const std::string strNum) noexcept {
  * @param strNum2: 第二个整数, 必须是 (可以转换为) std::string 的类型.
  * @return int类型, 范围在 {0, 1, -1} 内.
  */
-constexpr int fau::basic_vast_operation::compare(std::string strNum1,
-                                                 std::string strNum2) noexcept {
-    if (!negative(strNum1) && !negative(strNum2)) {
-        strNum1 = law_up(strNum1), strNum2 = law_up(strNum2); // 合法化
+constexpr int fau::vast::str_compare(const std::string &strSrc1,
+                                     const std::string &strSrc2) noexcept {
+    if (!str_negative(strSrc1) && !str_negative(strSrc2)) {
+        std::string strNum1 = str_settle(strSrc1),
+                    strNum2 = str_settle(strSrc2); // 合法化
         size_t length1 = strNum1.size(), length2 = strNum2.size();
         if (length1 > length2)
             return 1;
@@ -100,11 +105,12 @@ constexpr int fau::basic_vast_operation::compare(std::string strNum1,
             return strNum1.compare(strNum2);
         return -1;
     }
-    else if (negative(strNum1) && !negative(strNum2))
+    else if (str_negative(strSrc1) && !str_negative(strSrc2))
         return -1;
-    else if (!negative(strNum1) && negative(strNum2))
+    else if (!str_negative(strSrc1) && str_negative(strSrc2))
         return 1;
-    return compare(abs(strNum1), abs(strNum2)) * -1; // 表明两个数均为负数
+    return str_compare(str_abs(strSrc1), str_abs(strSrc2)) *
+           -1; // 表明两个数均为负数
 }
 
 /**
@@ -114,9 +120,9 @@ constexpr int fau::basic_vast_operation::compare(std::string strNum1,
  * @param strNum2: 第二个整数, 必须是 (可以转换为) std::string 的类型.
  * @return std::string类型, 为两个整数的和.(无序)
  */
-constexpr std::string fau::basic_vast_operation::add(std::string strNum1,
-                                                     std::string strNum2) {
-    if (!negative(strNum1) && !negative(strNum2)) {
+constexpr std::string fau::vast::str_add(std::string strNum1,
+                                         std::string strNum2) {
+    if (!str_negative(strNum1) && !str_negative(strNum2)) {
         size_t iter, length1 = strNum1.size(), length2 = strNum2.size();
         std::string result = "";
 
@@ -144,17 +150,17 @@ constexpr std::string fau::basic_vast_operation::add(std::string strNum1,
         if (carry) result += (char)(carry + '0');
 
         reverse(result.begin(), result.end()); // 翻转回来
-        result = law_up(result); // 合法化, 主要为去除前导0
+        result = str_settle(result); // 合法化, 主要为去除前导0
         return result;
     }
     // 形如a+(-b)(a, b均为非负数)的加法算式可以变为a与b的减法算式
-    else if (!negative(strNum1) && negative(strNum2))
-        return minus(strNum1, abs(strNum2));
+    else if (!str_negative(strNum1) && str_negative(strNum2))
+        return str_minus(strNum1, str_abs(strNum2));
     // 原理同上
-    else if (negative(strNum1) && !negative(strNum2))
-        return minus(strNum2, abs(strNum1));
+    else if (str_negative(strNum1) && !str_negative(strNum2))
+        return str_minus(strNum2, str_abs(strNum1));
     // 到这里说明均为负数
-    return "-" + add(abs(strNum1), abs(strNum2));
+    return "-" + str_add(str_abs(strNum1), str_abs(strNum2));
 }
 
 /**
@@ -164,11 +170,12 @@ constexpr std::string fau::basic_vast_operation::add(std::string strNum1,
  * @param strNum2: 第二个整数, 必须是 (可以转换为) std::string 的类型.
  * @return std::string类型, 为第一个整数减去第二个整数的结果(即差, 有序).
  */
-constexpr std::string fau::basic_vast_operation::minus(std::string strNum1,
-                                                       std::string strNum2) {
-    if (!negative(strNum1) && !negative(strNum2)) {
+constexpr std::string fau::vast::str_minus(std::string strNum1,
+                                           std::string strNum2) {
+    if (!str_negative(strNum1) && !str_negative(strNum2)) {
         // 减数大于被减数
-        if (compare(strNum2, strNum1) > 0) return "-" + minus(strNum2, strNum1);
+        if (str_compare(strNum2, strNum1) > 0)
+            return "-" + str_minus(strNum2, strNum1);
 
         // 到这里被减数就必然大于减数
         size_t iter, length1 = strNum1.size(), length2 = strNum2.size();
@@ -190,17 +197,17 @@ constexpr std::string fau::basic_vast_operation::minus(std::string strNum1,
         }
 
         reverse(result.begin(), result.end());
-        result = law_up(result);
+        result = str_settle(result);
         return result;
     }
     // 原理同add方法
-    else if (!negative(strNum1) && negative(strNum2))
-        return add(strNum1, abs(strNum2));
+    else if (!str_negative(strNum1) && str_negative(strNum2))
+        return str_add(strNum1, str_abs(strNum2));
     // 原理同上
-    else if (negative(strNum1) && !negative(strNum2))
-        return "-" + add(strNum2, abs(strNum1));
+    else if (str_negative(strNum1) && !str_negative(strNum2))
+        return "-" + str_add(strNum2, str_abs(strNum1));
     // 到这里说明均为负数, -a - (-b) (a, b均为正数) 可以转化为b - a
-    return minus(abs(strNum2), abs(strNum1));
+    return str_minus(str_abs(strNum2), str_abs(strNum1));
 }
 
 /**
@@ -210,9 +217,9 @@ constexpr std::string fau::basic_vast_operation::minus(std::string strNum1,
  * @param strNum2: 第二个整数, 必须是 (可以转换为) std::string 的类型.
  * @return std::string类型, 为第一个整数乘上第二个整数的结果(即积, 无序).
  */
-constexpr std::string fau::basic_vast_operation::multiply(std::string strNum1,
-                                                          std::string strNum2) {
-    if (!negative(strNum1) && !negative(strNum2)) {
+constexpr std::string fau::vast::str_multiply(std::string strNum1,
+                                              std::string strNum2) {
+    if (!str_negative(strNum1) && !str_negative(strNum2)) {
         size_t iter, jter, *arrResult;
         size_t length1 = strNum1.size(), length2 = strNum2.size();
         std::string result = "";
@@ -245,13 +252,13 @@ constexpr std::string fau::basic_vast_operation::multiply(std::string strNum1,
         return result;
     }
     // 形如a * (-b) (a, b均为正数)的乘法算式可以转化为 - (a * b)
-    else if (negative(strNum1) && !negative(strNum2))
-        return '-' + multiply(strNum2, abs(strNum1));
+    else if (str_negative(strNum1) && !str_negative(strNum2))
+        return '-' + str_multiply(strNum2, str_abs(strNum1));
     // 原理同上
-    else if (!negative(strNum1) && negative(strNum2))
-        return '-' + multiply(strNum1, abs(strNum2));
+    else if (!str_negative(strNum1) && str_negative(strNum2))
+        return '-' + str_multiply(strNum1, str_abs(strNum2));
     // 到这里表明两个整数均为负数, 在作乘法运算时负号抵消, 结果为正数
-    return multiply(abs(strNum1), abs(strNum2));
+    return str_multiply(str_abs(strNum1), str_abs(strNum2));
 }
 
 /**
@@ -261,11 +268,11 @@ constexpr std::string fau::basic_vast_operation::multiply(std::string strNum1,
  * @param strNum2: 第二个整数, 必须是 (可以转换为) std::string 的类型.
  * @return std::string类型, 为第一个整数整除第二个整数的结果(即整数商, 有序).
  */
-constexpr std::string fau::basic_vast_operation::divide(std::string strNum1,
-                                                        std::string strNum2) {
-    if (!negative(strNum1) && !negative(strNum2)) {
+constexpr std::string fau::vast::str_divide(std::string strNum1,
+                                            std::string strNum2) {
+    if (!str_negative(strNum1) && !str_negative(strNum2)) {
         // 如果除数比被除数大, 则商为0
-        if ((compare(strNum2, strNum1) > 0)) return "0";
+        if ((str_compare(strNum2, strNum1) > 0)) return "0";
 
         // 到这里被除数必然大于除数
         size_t nPos;
@@ -278,23 +285,23 @@ constexpr std::string fau::basic_vast_operation::divide(std::string strNum1,
 
         while (nPos < length1) {
             int quotient = 0; // 临时商变量
-            while (compare(strTemp, strNum2) >= 0) {
+            while (str_compare(strTemp, strNum2) >= 0) {
                 quotient++;
-                strTemp = minus(strTemp, strNum2);
+                strTemp = str_minus(strTemp, strNum2);
             }
             result += (char)(quotient + '0');
             nPos++;
             if (nPos < length1) strTemp += strNum1[nPos];
         }
 
-        result = law_up(result);
+        result = str_settle(result);
         return result;
     }
-    else if (negative(strNum1) && !negative(strNum2))
-        return "-" + divide(abs(strNum1), strNum2);
-    else if (!negative(strNum1) && negative(strNum2))
-        return "-" + divide(strNum1, abs(strNum2));
-    return divide(abs(strNum1), abs(strNum2));
+    else if (str_negative(strNum1) && !str_negative(strNum2))
+        return "-" + str_divide(str_abs(strNum1), strNum2);
+    else if (!str_negative(strNum1) && str_negative(strNum2))
+        return "-" + str_divide(strNum1, str_abs(strNum2));
+    return str_divide(str_abs(strNum1), str_abs(strNum2));
 }
 
 /**
@@ -304,34 +311,16 @@ constexpr std::string fau::basic_vast_operation::divide(std::string strNum1,
  * @param strNum2: 第二个整数, 必须是 (可以转换为) std::string 的类型.
  * @return std::string类型, 为第一个整数模以第二个整数的结果(即余数, 有序).
  */
-constexpr std::string fau::basic_vast_operation::mod(std::string strNum1,
-                                                     std::string strNum2) {
-    if (compare(strNum1, strNum2) == 0)
+constexpr std::string fau::vast::str_mod(std::string strNum1,
+                                         std::string strNum2) {
+    if (str_compare(strNum1, strNum2) == 0)
         return "0";
-    else if (negative(strNum1) || negative(strNum2))
+    else if (str_negative(strNum1) || str_negative(strNum2))
         throw "a negative number when modding";
     std::string result =
-        minus(strNum1, multiply(divide(strNum1, strNum2), strNum2));
-    if (compare("0", result) > 0) result = add(result, strNum2);
+        str_minus(strNum1, str_multiply(str_divide(strNum1, strNum2), strNum2));
+    if (str_compare("0", result) > 0) result = str_add(result, strNum2);
     return result;
-}
-
-/**
- * @brief
- * 针对表示整数的两个std::string类型进行的求最大公约数操作. 使用欧几里得算法.
- * @param strNum1: 第一个整数, 必须是 (可以转换为) std::string 的类型.
- * @param strNum2: 第二个整数, 必须是 (可以转换为) std::string 的类型.
- * @return std::string类型, 为第一个整数和第二个整数的最大公约数(无序).
- */
-constexpr std::string fau::basic_vast_operation::gcd(std::string strNum1,
-                                                     std::string strNum2) {
-    if (strNum1 == "0") return strNum2;
-    if (strNum2 == "0") return strNum1;
-    if (compare(strNum1, strNum2) == 0) std::swap(strNum1, strNum2);
-    std::string result = mod(strNum1, strNum2);
-    while (result != "0")
-        strNum1 = strNum2, strNum2 = result, result = mod(strNum1, strNum2);
-    return strNum2;
 }
 
 /* 静态方法-- */
@@ -346,7 +335,7 @@ constexpr std::string fau::basic_vast_operation::gcd(std::string strNum1,
  */
 inline constexpr void fau::vast::copy_str(const std::string &strSrc) noexcept {
     this->clear();
-    this->self_data = basic_vast_operation::law_up(strSrc);
+    this->self_data = str_settle(strSrc);
 }
 
 /**
@@ -370,7 +359,7 @@ inline void fau::vast::copy_num(const num_t &numSrc) noexcept {
  * @return bool类型, 表示%vast是否为负数.
  */
 inline constexpr bool fau::vast::negative() const noexcept {
-    return basic_vast_operation::negative(this->self_data);
+    return str_negative(this->self_data);
 }
 
 /**
@@ -379,8 +368,7 @@ inline constexpr bool fau::vast::negative() const noexcept {
  * @return bool类型, 表示%vast是否为正数.
  */
 inline constexpr bool fau::vast::positive() const noexcept {
-    return !basic_vast_operation::negative(this->self_data) &&
-           this->self_data != "0";
+    return !str_negative(this->self_data) && this->self_data != "0";
 }
 
 /**
@@ -389,8 +377,7 @@ inline constexpr bool fau::vast::positive() const noexcept {
  */
 inline constexpr fau::vast fau::vast::operator+(const vast &vaX) const {
     vast vaTemp(*this);
-    vaTemp.self_data =
-        basic_vast_operation::add(vaTemp.self_data, vaX.self_data);
+    vaTemp.self_data = str_add(vaTemp.self_data, vaX.self_data);
     return vaTemp;
 }
 
@@ -400,8 +387,7 @@ inline constexpr fau::vast fau::vast::operator+(const vast &vaX) const {
  */
 inline constexpr fau::vast fau::vast::operator-(const vast &vaX) const {
     vast vaTemp(*this);
-    vaTemp.self_data =
-        basic_vast_operation::minus(vaTemp.self_data, vaX.self_data);
+    vaTemp.self_data = str_minus(vaTemp.self_data, vaX.self_data);
     return vaTemp;
 }
 
@@ -411,8 +397,7 @@ inline constexpr fau::vast fau::vast::operator-(const vast &vaX) const {
  */
 inline constexpr fau::vast fau::vast::operator*(const vast &vaX) const {
     vast vaTemp(*this);
-    vaTemp.self_data =
-        basic_vast_operation::multiply(vaTemp.self_data, vaX.self_data);
+    vaTemp.self_data = str_multiply(vaTemp.self_data, vaX.self_data);
     return vaTemp;
 }
 
@@ -422,8 +407,7 @@ inline constexpr fau::vast fau::vast::operator*(const vast &vaX) const {
  */
 inline constexpr fau::vast fau::vast::operator/(const vast &vaX) const {
     vast vaTemp(*this);
-    vaTemp.self_data =
-        basic_vast_operation::divide(vaTemp.self_data, vaX.self_data);
+    vaTemp.self_data = str_divide(vaTemp.self_data, vaX.self_data);
     return vaTemp;
 }
 
@@ -433,8 +417,7 @@ inline constexpr fau::vast fau::vast::operator/(const vast &vaX) const {
  */
 inline constexpr fau::vast fau::vast::operator%(const vast &vaX) const {
     vast vaTemp(*this);
-    vaTemp.self_data =
-        basic_vast_operation::mod(vaTemp.self_data, vaX.self_data);
+    vaTemp.self_data = str_mod(vaTemp.self_data, vaX.self_data);
     return vaTemp;
 }
 
@@ -455,16 +438,16 @@ constexpr bool fau::vast::operator!=(const vast &vaX) const {
     return !(this->operator==(vaX));
 }
 constexpr bool fau::vast::operator>(const vast &vaX) const {
-    return basic_vast_operation::compare(this->self_data, vaX.self_data) > 0;
+    return str_compare(this->self_data, vaX.self_data) > 0;
 }
 constexpr bool fau::vast::operator<(const vast &vaX) const {
-    return basic_vast_operation::compare(this->self_data, vaX.self_data) < 0;
+    return str_compare(this->self_data, vaX.self_data) < 0;
 }
 constexpr bool fau::vast::operator>=(const vast &vaX) const {
-    return basic_vast_operation::compare(this->self_data, vaX.self_data) >= 0;
+    return str_compare(this->self_data, vaX.self_data) >= 0;
 }
 constexpr bool fau::vast::operator<=(const vast &vaX) const {
-    return basic_vast_operation::compare(this->self_data, vaX.self_data) <= 0;
+    return str_compare(this->self_data, vaX.self_data) <= 0;
 }
 
 constexpr fau::vast fau::vast::operator=(const vast &vaX) {
@@ -474,7 +457,7 @@ constexpr fau::vast fau::vast::operator=(const vast &vaX) {
 constexpr fau::vast::operator std::string() const { return this->self_data; }
 constexpr fau::vast::operator num_t() const {
     num_t numTemp = 0;
-    std::string strTemp = fau::basic_vast_operation::abs(this->self_data);
+    std::string strTemp = str_abs(this->self_data);
     while (!strTemp.empty()) // 尾插法
         numTemp = (numTemp * 10) + strTemp.front() - '0', strTemp.erase(0, 1);
     if (this->self_data.front() == '-') numTemp = -numTemp;
@@ -529,7 +512,7 @@ inline constexpr void fau::vast::clear() noexcept { this->self_data.clear(); }
  * @return size_t类型, 为当前%vast中的数字位数(该vast的长度).
  */
 inline constexpr size_t fau::vast::length() const noexcept {
-    return fau::basic_vast_operation::abs(this->self_data).length();
+    return str_abs(this->self_data).length();
 }
 
 /**
@@ -537,7 +520,7 @@ inline constexpr size_t fau::vast::length() const noexcept {
  * @return size_t类型, 为当前%vast中的数字位数(该vast的长度).
  */
 inline constexpr size_t fau::vast::size() const noexcept {
-    return fau::basic_vast_operation::abs(this->self_data).size();
+    return str_abs(this->self_data).size();
 }
 
 /**

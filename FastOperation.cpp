@@ -1,5 +1,5 @@
-#include <src/fauc++.h>
 #include <bits/stdc++.h>
+#include <src/fauc++.h>
 fau::vast a[3];
 int main() {
     for (auto &i : a) std::cin >> i;
