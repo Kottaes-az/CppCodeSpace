@@ -1,6 +1,5 @@
 #include <bits\stdc++.h>
-using namespace std;
 int main() {
-    cout << __cplusplus;
+    std::cout << __cplusplus << std::endl;
     return 0;
 }

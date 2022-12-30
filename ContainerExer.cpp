@@ -6,9 +6,19 @@ namespace initial {
     const Status ERROR = 0, NOT_FOUND = 0, SUCCEEDED = 1, WARNING = 2;
 }; // namespace initial
 namespace natural {
-    bool InRange(size_t i, size_t leftBorder, size_t rightBorder,
+    bool InRange(size_t dest, size_t leftBorder, size_t rightBorder,
                  bool leftOpen = false, bool rightOpen = false) {
-        return i >= leftBorder + leftOpen && i <= rightBorder - rightOpen;
+        return dest >= leftBorder + leftOpen && dest <= rightBorder - rightOpen;
+    }
+    size_t MaxOf(size_t totNum, ...) {
+        size_t cnt = 0, iter = 0, maxVal = -SIZE_MAX - 1;
+        va_list varList;
+        va_start(varList, totNum);
+        while (cnt <= totNum)
+            maxVal = maxVal > iter ? maxVal : iter, cnt++,
+            iter = va_arg(varList, size_t);
+        va_end(varList);
+        return maxVal;
     }
 }; // namespace natural
 namespace container {
