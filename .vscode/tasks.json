@@ -4,7 +4,7 @@
     {
       "label": "CppBuild", //任务名称，可以更改，不过不建议改
       "type": "shell", //任务类型，process是vsc把预定义变量和转义解析后直接全部传给command；shell相当于先打开shell再输入命令，所以args还会经过shell再解析一遍
-      "command": "g++.exe", //编译命令，这里是gcc，编译c++的话换成g++
+      "command": "ucrt64 g++", //编译命令，这里是gcc，编译c++的话换成g++
       "args": [
         //方括号里是传给gcc命令的一系列参数，用于实现一些功能
         "${file}", //指定要编译的是当前文件
@@ -16,7 +16,7 @@
         "-fexec-charset=GBK", // 生成的程序使用GB2312编码，不加这一条会导致Win下输出中文乱码
         "-finput-charset=GBK",
         "-finput-charset=UTF-8",
-        "-std=gnu++2a" // 语言标准，可根据自己的需要进行修改，写c++要换成c++的语言标准，比如c++11
+        "-std=gnu++2a" // 语言标准，可根据自己的需要进行修改，写c要换成c++的语言标准，比如c++11
       ],
       "options": {
         "cwd": "D:\\CodeEnv\\msys64\\ucrt64\\bin"
